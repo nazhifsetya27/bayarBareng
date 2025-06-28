@@ -188,6 +188,7 @@ interface ShareItem {
   ppnPercent?: number; // ex: 10
   svcOn?: boolean;
   svcPercent?: number;
+  amounts: Record<number, number>; // Added to fix the error
 }
 
 export const makeShareLink = (

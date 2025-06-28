@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { praiseWords } from "../praiseWords";
-import { WhatsAppButton, makeShareLink } from "../utils";
+import { praiseWords } from "../../utils/praiseWords";
+import { WhatsAppButton, makeShareLink } from "../../utils/utils";
 
 const palette = {
   pink: "#FF8FAB",
@@ -25,7 +25,17 @@ const payCard = {
   color: palette.violet,
 };
 
-const chip = (bg, txt) => ({
+interface ChipStyle {
+  background: string;
+  color: string;
+  borderRadius: number;
+  padding: string;
+  fontWeight: number;
+  display: string;
+  alignItems: string;
+}
+
+const chip = (bg: string, txt: string): ChipStyle => ({
   background: bg,
   color: txt,
   borderRadius: 8,
@@ -35,45 +45,93 @@ const chip = (bg, txt) => ({
   alignItems: "center",
 });
 
-function formatRupiah(value) {
-  if (typeof value !== "number" && typeof value !== "string") return value;
+interface FormatRupiah {
+  (value: number | string): string;
+}
+
+const formatRupiah: FormatRupiah = (value) => {
+  if (typeof value !== "number" && typeof value !== "string") return "0";
   let num = Number(value);
   // Bulatkan ke ratusan terdekat
   num = Math.round(num / 100) * 100;
   if (!num) return "0";
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-}
+};
 
 /* --------------------- UTILITIES --------------------- */
-const getOthers = (item) =>
-  item.participants?.filter((pid) => pid !== item.paidBy) ?? [];
+interface Item {
+  id: number;
+  name: string;
+  price: number;
+  paidBy: number;
+  participants: number[];
+  amounts: Record<number, number>;
+  ppnOn?: boolean;
+  ppnPercent?: number;
+  svcOn?: boolean;
+  svcPercent?: number;
+}
+
+const getOthers = (item: Item): number[] =>
+  item.participants?.filter((pid: number) => pid !== item.paidBy) ?? [];
 
 /* ------------------ SPLIT PER ORANG ------------------ */
-function calculateSplit(friends, items) {
-  const total = Object.fromEntries(friends.map((f) => [f.id, 0]));
+interface Friend {
+  id: number;
+  name: string;
+  emoji?: string;
+}
+
+interface CalculateSplitResult {
+  [id: number]: number;
+}
+
+function calculateSplit(
+  friends: Friend[],
+  items: Item[]
+): CalculateSplitResult {
+  const total: CalculateSplitResult = Object.fromEntries(
+    friends.map((f) => [f.id, 0])
+  );
 
   items.forEach((it) => {
     const m = getItemMultiplier(it);
-    it.participants.forEach((pid) => {
+    it.participants.forEach((pid: number) => {
       total[pid] += Number(it.amounts[pid] || 0) * m;
     });
   });
   return total;
 }
 
-function getItemMultiplier(it) {
+interface ItemMultiplierInput {
+  ppnOn?: boolean;
+  ppnPercent?: number;
+  svcOn?: boolean;
+  svcPercent?: number;
+}
+
+function getItemMultiplier(it: ItemMultiplierInput): number {
   const ppn = it.ppnOn ? Number(it.ppnPercent || 0) / 100 : 0;
   const svc = it.svcOn ? Number(it.svcPercent || 0) / 100 : 0;
   return 1 + ppn + svc;
 }
 
 /* --------------------- NERACA ------------------------ */
-function calculateBalances(friends, items) {
-  const bal = Object.fromEntries(friends.map((f) => [f.id, 0]));
+interface CalculateBalancesResult {
+  [id: number]: number;
+}
 
-  items.forEach((it) => {
+function calculateBalances(
+  friends: Friend[],
+  items: Item[]
+): CalculateBalancesResult {
+  const bal: CalculateBalancesResult = Object.fromEntries(
+    friends.map((f) => [f.id, 0])
+  );
+
+  items.forEach((it: Item) => {
     const m = getItemMultiplier(it);
-    it.participants.forEach((pid) => {
+    it.participants.forEach((pid: number) => {
       const owe = Number(it.amounts[pid] || 0) * m;
       bal[pid] -= owe;
     });
@@ -83,9 +141,13 @@ function calculateBalances(friends, items) {
 }
 
 /* total dibayar murni */
-function calculatePaidTotals(friends, items) {
-  const paid = Object.fromEntries(friends.map((f) => [f.id, 0]));
-  items.forEach((it) => {
+interface PaidTotals {
+  [id: number]: number;
+}
+
+function calculatePaidTotals(friends: Friend[], items: Item[]): PaidTotals {
+  const paid: PaidTotals = Object.fromEntries(friends.map((f) => [f.id, 0]));
+  items.forEach((it: Item) => {
     if (!it.price || it.paidBy == null) return;
     paid[it.paidBy] += Number(it.price) * getItemMultiplier(it);
   });
@@ -119,8 +181,8 @@ function settle(balances: Record<number, number>): Transfer[] {
 }
 
 export default function Step3() {
-  const [friends, setFriends] = useState([]);
-  const [items, setItems] = useState([]);
+  const [friends, setFriends] = useState<Friend[]>([]);
+  const [items, setItems] = useState<Item[]>([]);
   const [showCoins, setShowCoins] = useState(false);
   /* --- cari creditor terbesar --- */
   // const [topCreditorId, setTopCreditorId] = useState<number | null>(null);
@@ -524,14 +586,12 @@ export default function Step3() {
                 if (!from || !to) return null;
 
                 // 🔹 hitung warna latar untuk from / to
+                const paletteKeys = Object.keys(
+                  palette
+                ) as (keyof typeof palette)[];
                 const bgFrom =
-                  palette[
-                    Object.keys(palette)[from.id % Object.keys(palette).length]
-                  ];
-                const bgTo =
-                  palette[
-                    Object.keys(palette)[to.id % Object.keys(palette).length]
-                  ];
+                  palette[paletteKeys[from.id % paletteKeys.length]];
+                const bgTo = palette[paletteKeys[to.id % paletteKeys.length]];
 
                 // 🔹 pilih warna teks kontras (contoh: putih jika bg = violet)
                 const textFrom =
@@ -670,7 +730,11 @@ export default function Step3() {
                 transition: "transform 0.2s",
               }}
               onClick={() => {
-                const link = makeShareLink(friends, items);
+                const shareItems = items.map((it) => ({
+                  ...it,
+                  emoji: "", // or provide a suitable emoji if available
+                }));
+                const link = makeShareLink(friends, shareItems);
                 // Tampilkan toaster notifikasi
                 const toaster = document.createElement("div");
                 toaster.textContent = "Link disalin!";

@@ -78,7 +78,7 @@ const ToggleChip = ({
 );
 
 /* di file Step2 (di atas komponen utama) */
-const InfoTip = ({ message }) => {
+const InfoTip: React.FC<{ message: string }> = ({ message }) => {
   const [show, setShow] = React.useState(false);
   return (
     <span
@@ -569,22 +569,25 @@ export default function Step2() {
                       }}
                       onClick={() =>
                         setItems((its) =>
-                          its.map((it) =>
-                            it.id === item.id
-                              ? {
-                                  ...it,
-                                  participants: it.participants.includes(f.id)
-                                    ? it.participants.filter((p) => p !== f.id)
-                                    : [...it.participants, f.id],
-                                  amounts: {
-                                    ...(it.amounts || {}), // ← safe spread
-                                    [f.id]: it.participants.includes(f.id)
-                                      ? undefined
-                                      : "", // init empty
-                                  },
-                                }
-                              : it
-                          )
+                          its.map((it) => {
+                            if (it.id !== item.id) return it;
+                            const isSelected = it.participants.includes(f.id);
+                            const newParticipants = isSelected
+                              ? it.participants.filter((p) => p !== f.id)
+                              : [...it.participants, f.id];
+                            // Buat amounts baru tanpa key jika di-unselect
+                            const newAmounts = { ...(it.amounts || {}) };
+                            if (isSelected) {
+                              delete newAmounts[f.id];
+                            } else {
+                              newAmounts[f.id] = "";
+                            }
+                            return {
+                              ...it,
+                              participants: newParticipants,
+                              amounts: newAmounts,
+                            };
+                          })
                         )
                       }
                       aria-pressed={item.participants.includes(f.id)}
@@ -680,7 +683,7 @@ export default function Step2() {
                       }}
                     >
                       <ToggleChip
-                        checked={item.ppnOn}
+                        checked={!!item.ppnOn}
                         onChange={() =>
                           setItems((its) =>
                             its.map((it) =>
@@ -717,7 +720,7 @@ export default function Step2() {
                                   ? {
                                       ...it,
                                       ppnPercent: e.target.value.replace(
-                                        /\\D/g,
+                                        /\D/g,
                                         ""
                                       ),
                                     }
@@ -748,7 +751,7 @@ export default function Step2() {
                       }}
                     >
                       <ToggleChip
-                        checked={item.svcOn}
+                        checked={!!item.svcOn}
                         onChange={() =>
                           setItems((its) =>
                             its.map((it) =>
@@ -785,7 +788,7 @@ export default function Step2() {
                                   ? {
                                       ...it,
                                       svcPercent: e.target.value.replace(
-                                        /\\D/g,
+                                        /\D/g,
                                         ""
                                       ),
                                     }
