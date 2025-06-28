@@ -18,69 +18,98 @@ interface Props {
   formatRupiah: (n: number) => string; // re-gunakan util yang sudah ada
 }
 
+const multiplier = (it: ShareItem) => {
+  const ppn = it.ppnOn ? (it.ppnPercent || 0) / 100 : 0;
+  const svc = it.svcOn ? (it.svcPercent || 0) / 100 : 0;
+  return 1 + ppn + svc;
+};
+
 /** Merangkai teks hasil patungan */
 /* utils/shareWhatsApp.ts – versi aman emoji */
 /* utils/shareWhatsApp.ts – versi ASCII-safe */
 export const buildWhatsAppMessage = (
-  friends: { id: number; name: string }[],
-  items: {
-    id: number;
-    emoji: string;
-    name: string;
-    price: number;
-    participants: number[];
-    paidBy: number | null;
-  }[],
+  friends: Friend[],
+  items: ShareItem[],
   paidTotals: Record<number, number>,
-  transfers: { from: number; to: number; amount: number }[],
+  transfers: Transfer[],
   fmt: (n: number) => string
 ) => {
-  const txt: string[] = [];
+  const t: string[] = [];
 
-  /* Header */
-  txt.push("*Hasil Patungan BayarBareng*");
-  txt.push("");
+  t.push("*Hasil Patungan BayarBareng*");
+  t.push("");
 
-  /* Ringkasan per orang */
-  txt.push("_Ringkasan Bayar_");
+  /* Ringkasan total */
+  t.push("_Ringkasan Bayar_");
   friends.forEach((f) =>
-    txt.push(`- *${f.name}* membayar Rp${fmt(paidTotals[f.id] || 0)}`)
+    t.push(`- *${f.name}* membayar Rp${fmt(paidTotals[f.id] || 0)}`)
   );
-  txt.push("");
+  t.push("");
 
   /* Rincian item */
-  txt.push("_Rincian Item_");
-  items.forEach((it, i) => {
-    const share = it.participants.length
-      ? fmt(it.price / it.participants.length)
-      : "0";
+  t.push("_Rincian Item_");
+  items.forEach((it, idx) => {
+    const m = multiplier(it);
     const peserta = it.participants
-      .map((pid) => friends.find((x) => x.id === pid)?.name)
+      .map((pid) => {
+        const nm = friends.find((x) => x.id === pid)?.name;
+        const nominalDasar = it.amounts[pid] || 0;
+        const nominalAkhir = nominalDasar * m;
+        return `${nm} (Rp${fmt(nominalAkhir)})`;
+      })
       .join(", ");
-    txt.push(`${i + 1}. ${it.name} — Rp${fmt(it.price)}`);
-    txt.push(
-      `   Dibayar oleh: *${friends.find((x) => x.id === it.paidBy)?.name}*`
+
+    t.push(`${idx + 1}. ${it.name} — Rp${fmt(it.price * m)}`);
+    t.push(
+      `   Dibayar oleh: *${
+        friends.find((x) => x.id === it.paidBy)?.name || "-"
+      }*`
     );
-    txt.push(`   Peserta: ${peserta} (Rp${share}/orang)`);
+    t.push(`   Peserta: ${peserta}`);
   });
-  txt.push("");
+  t.push("");
+
+  /* Rincian per-orang – NEW -------------------------------------------- */
+  t.push("_Rincian Per-Orang_");
+  friends.forEach((f) => {
+    t.push(`*${f.name}*`);
+    items
+      .filter((it) => it.participants.includes(f.id))
+      .forEach((it) => {
+        const m =
+          1 +
+          (it.ppnOn ? (it.ppnPercent || 0) / 100 : 0) +
+          (it.svcOn ? (it.svcPercent || 0) / 100 : 0);
+
+        const nominal = (it.amounts[f.id] || 0) * m;
+
+        /* tag PPN / Service utk info visual */
+        const tags: string[] = [];
+        if (it.ppnOn) tags.push("PPN");
+        if (it.svcOn) tags.push("Svc");
+        const tagStr = tags.length ? ` (${tags.join("+")})` : "";
+
+        t.push(`• ${it.name}${tagStr}: Rp${fmt(nominal)}`);
+      });
+    t.push(""); // spasi antar user
+  });
+  /* -------------------------------------------------------------------- */
 
   /* Transfer */
   if (transfers.length) {
-    txt.push("_Setoran Silang_");
-    transfers.forEach((t) =>
-      txt.push(
-        `${friends.find((x) => x.id === t.from)?.name} ➜ ` +
-          `${friends.find((x) => x.id === t.to)?.name}: ` +
-          `Rp${fmt(t.amount)}`
+    t.push("_Setoran Silang_");
+    transfers.forEach((tr) =>
+      t.push(
+        `${friends.find((x) => x.id === tr.from)?.name} ➜ ` +
+          `${friends.find((x) => x.id === tr.to)?.name}: ` +
+          `Rp${fmt(tr.amount)}`
       )
     );
-    txt.push("");
+    t.push("");
   }
 
-  txt.push("Terima kasih!");
-
-  return txt.join("\n");
+  t.push("Terima kasih, jangan lupa *DIBAYAR*!");
+  return t.join("\n");
 };
 
 export const shareViaWhatsApp = (m: string) =>
@@ -155,6 +184,10 @@ interface ShareItem {
   price: number;
   participants: number[];
   paidBy: number | null;
+  ppnOn?: boolean;
+  ppnPercent?: number; // ex: 10
+  svcOn?: boolean;
+  svcPercent?: number;
 }
 
 export const makeShareLink = (

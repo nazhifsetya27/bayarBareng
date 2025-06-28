@@ -1,7 +1,27 @@
+html,
+body,
+#__next {
+  width: 100vw;
+  min-width: 100vw;
+  max-width: 100vw;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+/* box-sizing global */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 body {
   background: #e9ebef;
   padding: 0;
-  margin: 0 auto;
+  margin: 0;
 }
 
 .app-container {
@@ -16,8 +36,10 @@ body {
   flex-direction: column;
 }
 
-@media (max-width: 375px) {
+@media (max-width: 600px) {
   .app-container {
+    max-width: 100vw;
+    width: 100vw;
     border-radius: 0;
     box-shadow: none;
   }

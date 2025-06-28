@@ -149,13 +149,17 @@ export default function Step1() {
                 marginBottom: 12,
                 boxShadow: "0 2px 8px #0001",
                 position: "relative",
+                minWidth: 0,
                 ...cardAnim(i),
               }}
             >
               <div
                 style={{
-                  width: 36,
-                  height: 36,
+                  width: 18,
+                  height: 18,
+                  // flex: "0 0 36px", // ⬅️ stop grow & shrink
+                  // borderRadius: "50%", // ⬅️ true circle, berapa pun ukuran
+                  // overflow: "hidden", // (opsional) potong emoji besar
                   borderRadius: 18,
                   background: palette.yellow,
                   marginRight: 12,
@@ -216,9 +220,12 @@ export default function Step1() {
                     border: "none",
                     color: palette.violet,
                     fontSize: 20,
-                    marginLeft: 10,
+                    // marginLeft: 10,
                     cursor: "pointer",
                     transition: "transform 0.2s",
+                    marginLeft:
+                      "auto" /* ⬅️ dorong ke kanan, tidak menambah lebar */,
+                    flexShrink: 0 /* jangan ikut direnggangkan */,
                   }}
                   aria-label="Hapus teman"
                   onClick={() => {

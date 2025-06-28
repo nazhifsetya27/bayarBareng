@@ -237,6 +237,7 @@ export default function Step2() {
     <div
       style={{
         minHeight: "100svh",
+        width: "100vw",
         background: `linear-gradient(135deg, ${palette.pink} 0%, ${palette.mint} 100%)`,
         display: "flex",
         justifyContent: "center",
@@ -250,8 +251,8 @@ export default function Step2() {
           background: "rgba(255,255,255,0.92)",
           borderRadius: 0,
           boxShadow: "none",
-          maxWidth: 430,
-          width: "100vw",
+          maxWidth: "100%",
+          width: "100%",
           minHeight: "100svh",
           padding: 0,
           display: "flex",
@@ -929,7 +930,7 @@ export default function Step2() {
               fontSize: 13,
               color: palette.violet,
               marginBottom: 16,
-              width: "100%",
+              width: "auto",
               boxShadow: "0 2px 8px #0001",
               textAlign: "center",
             }}

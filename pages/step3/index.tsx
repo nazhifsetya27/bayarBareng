@@ -412,6 +412,42 @@ export default function Step3() {
                       Rp{formatRupiah(paidTotals[f.id] || 0)}
                     </span>
                   </div>
+                  {/* ─── Rincian per-event ─── */}
+                  <div style={{ marginTop: 6 }}>
+                    {items
+                      .filter((it) => it.participants.includes(f.id))
+                      .map((it) => {
+                        const m = getItemMultiplier(it); // ppn+svc already
+                        const nominal = Number(it.amounts[f.id] || 0) * m;
+
+                        // Contoh label “(+PPN, +Svc)” bila perlu
+                        const info: string[] = [];
+                        if (it.ppnOn) info.push("PPN");
+                        if (it.svcOn) info.push("Svc");
+                        const tag = info.length ? ` (+${info.join(",")})` : "";
+
+                        return (
+                          <div
+                            key={it.id}
+                            style={{
+                              fontSize: 13,
+                              color: "#555",
+                              display: "flex",
+                              justifyContent: "space-between",
+                              marginBottom: 2,
+                            }}
+                          >
+                            <span>
+                              • {it.name}
+                              {tag}
+                            </span>
+                            <span style={{ fontWeight: 600 }}>
+                              Rp{formatRupiah(nominal)}
+                            </span>
+                          </div>
+                        );
+                      })}
+                  </div>
                   {f.id === topCreditorId && kataPujian && (
                     <div
                       style={{
@@ -614,7 +650,7 @@ export default function Step3() {
           >
             <WhatsAppButton
               friends={friends}
-              items={items}
+              items={items} // ← items sudah punya amounts + ppnOn + …
               paidTotals={paidTotals}
               transfers={transfers}
               formatRupiah={formatRupiah}
