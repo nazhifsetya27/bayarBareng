@@ -500,7 +500,7 @@ export default function Step2() {
                     borderRadius: 8,
                     padding: 0,
                     width: "fit-content",
-                    marginBottom: 8,
+                    marginBottom: 0,
                   }}
                 >
                   <span
@@ -549,7 +549,7 @@ export default function Step2() {
                 <p
                   style={{
                     color: "#888",
-                    fontSize: 15,
+                    fontSize: 14,
                   }}
                 >
                   Siapa aja yang ikutan?
