@@ -383,6 +383,11 @@ export default function Step1() {
               transform: translateY(0);
             }
           }
+          input,
+          textarea,
+          select {
+            font-size: 16px !important;
+          }
         `}</style>
       </div>
     </div>

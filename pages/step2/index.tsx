@@ -170,7 +170,7 @@ export default function Step2() {
       paidBy: null as number | null,
       amounts: {},
       ppnOn: false,
-      ppnPercent: "10",
+      ppnPercent: "11",
       svcOn: false,
       svcPercent: "5",
     },
@@ -341,7 +341,7 @@ export default function Step2() {
               Tambah Item Belanja
             </span>
           </div>
-          <div
+          <p
             style={{
               color: "#888",
               fontSize: 15,
@@ -350,7 +350,7 @@ export default function Step2() {
             }}
           >
             Masukkan item, harga, dan siapa saja yang ikut membayar
-          </div>
+          </p>
           {/* Item List */}
           <div style={{ width: "100%", marginBottom: 12 }}>
             {items.map((item, i) => (
@@ -546,6 +546,14 @@ export default function Step2() {
                   />
                 </div>
                 {/* Chips Teman yang ikutan */}
+                <p
+                  style={{
+                    color: "#888",
+                    fontSize: 15,
+                  }}
+                >
+                  Siapa aja yang ikutan?
+                </p>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                   {friends.map((f) => (
                     <button
@@ -915,7 +923,7 @@ export default function Step2() {
                   paidBy: null,
                   amounts: {},
                   ppnOn: false,
-                  ppnPercent: "10",
+                  ppnPercent: "11",
                   svcOn: false,
                   svcPercent: "5",
                 },
@@ -1038,7 +1046,7 @@ export default function Step2() {
                 paidBy: null,
                 amounts: {},
                 ppnOn: false,
-                ppnPercent: "10",
+                ppnPercent: "11",
                 svcOn: false,
                 svcPercent: "5",
               },
@@ -1083,6 +1091,11 @@ export default function Step2() {
           select option:hover {
             background: #7de2d1;
             color: #725ac1;
+          }
+          input,
+          textarea,
+          select {
+            font-size: 16px !important;
           }
         `}</style>
       </div>
